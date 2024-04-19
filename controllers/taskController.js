@@ -60,9 +60,35 @@ const selectTask = async (request, response) => {
   }
 };
 
-const updateTask = (request, response) => {
-  console.log("task updated", request.params.id);
-  response.status(200).send("update task ");
+const updateTask = async (request, response) => {
+  try {
+    const { id: taskID } = request.params;
+    const { name, isCompleted } = request.body;
+    const taskToUpdate = await task_collection.findByIdAndUpdate(taskID, {
+      name,
+      isCompleted,
+    });
+    if (!taskToUpdate) {
+      return response.status(404).json({
+        status: "not found",
+        message: "No data with ID provided was found in the Database ",
+      });
+    }
+
+    await taskToUpdate.save();
+    response.status(201).json({
+      status: "success",
+      message: `task was updated to : ${{
+        name,
+        isCompleted,
+      }}`,
+    });
+  } catch (error) {
+    response.status(502).json({
+      status: "failure",
+      message: error._message,
+    });
+  }
 };
 
 const deleteTask = async (request, response) => {
