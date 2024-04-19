@@ -5,7 +5,7 @@ const taskController = async (request, response) => {
   try {
     const tasks = await task_collection.find({});
     if (tasks) {
-      response.status(200).json({ tasks });
+      response.status(200).json({ tasks, total: tasks.length });
     } else {
       response.status(404).json({
         result: "There was no record found ",

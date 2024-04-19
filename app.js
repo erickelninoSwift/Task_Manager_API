@@ -21,6 +21,9 @@ app.use("/api/v1/alltasks", createmyTask);
 app.use("/api/v1/alltasks", selectaTask);
 app.use("/api/v1/alltasks", deleteTask);
 app.use("/api/v1/alltasks", updatetask);
+app.get("/*", (request, response) => {
+  response.status(404).send("<h1>404 page not found </h1>");
+});
 
 const start = async () => {
   try {
