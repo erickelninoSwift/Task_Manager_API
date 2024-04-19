@@ -8,6 +8,12 @@ const selectaTask = require("./routes/getTask");
 const { connectDatabse } = require("./database/connection");
 require("dotenv").config();
 
+app.use(express.static("./public"));
+app.use(
+  express.urlencoded({
+    extended: false,
+  })
+);
 app.use(express.json());
 
 app.use("/api/v1/alltasks", getAlltask);

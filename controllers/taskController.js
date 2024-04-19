@@ -3,20 +3,16 @@ const { task_collection } = require("../model/TaskSchema");
 
 const taskController = async (request, response) => {
   try {
-    const getAllTasks = await task_collection.find({});
-    if (getAllTasks) {
-      response.status(200).json({
-        result: getAllTasks,
-      });
+    const tasks = await task_collection.find({});
+    if (tasks) {
+      response.status(200).json({ tasks });
     } else {
-      response.status(200).json({
+      response.status(404).json({
         result: "There was no record found ",
       });
     }
   } catch (error) {
-    response.status(404).json({
-      error: error._message,
-    });
+    response.status(404).json(error._message);
   }
 };
 
@@ -27,36 +23,23 @@ const createTask = async (request, response) => {
     response.status(201).json(task);
   } catch (error) {
     console.log(error);
-    response.status(500).json({
-      error: error._message,
-    });
+    response.status(500).json(error._message);
   }
 };
 
 const selectTask = async (request, response) => {
   try {
     const { id: taskID } = request.params;
-
-    if (taskID.length > 24) {
-      return response.status(500).json({
-        message: "Please provide correct id format",
-      });
-    }
-    const selectedTask = await task_collection.findOne({ _id: taskID });
-    console.log(taskID.length);
-    if (!selectedTask) {
+    const task = await task_collection.findOne({ _id: taskID });
+    if (!task) {
       return response.status(404).json({
         msg: `No task was found with ID `,
       });
     }
 
-    response.status(200).json({
-      myTask: selectedTask,
-    });
+    response.status(200).json({ task });
   } catch (error) {
-    response.status(404).json({
-      error: error._message,
-    });
+    response.status(404).json(error._message);
   }
 };
 
@@ -64,10 +47,14 @@ const updateTask = async (request, response) => {
   try {
     const { id: taskID } = request.params;
     const { name, isCompleted } = request.body;
-    const taskToUpdate = await task_collection.findByIdAndUpdate(taskID, {
-      name,
-      isCompleted,
-    });
+    const taskToUpdate = await task_collection.findOneAndUpdate(
+      { _id: taskID },
+      {
+        name,
+        isCompleted,
+      },
+      { new: true, runValidators: true }
+    );
     if (!taskToUpdate) {
       return response.status(404).json({
         status: "not found",
@@ -76,18 +63,11 @@ const updateTask = async (request, response) => {
     }
 
     await taskToUpdate.save();
-    response.status(201).json({
-      status: "success",
-      message: `task was updated to : ${{
-        name,
-        isCompleted,
-      }}`,
+    response.status(200).json({
+      task: request.body,
     });
   } catch (error) {
-    response.status(502).json({
-      status: "failure",
-      message: error._message,
-    });
+    response.status(502).json(error._message);
   }
 };
 
@@ -107,9 +87,7 @@ const deleteTask = async (request, response) => {
       message: `Task ID : ${taskID} was deleted successfully`,
     });
   } catch (error) {
-    response.status(404).json({
-      message: "Data was not found ",
-    });
+    response.status(404).json(error._message);
   }
 };
 
