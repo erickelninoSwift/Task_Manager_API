@@ -1,3 +1,4 @@
+const { customErrorMessage } = require("../custom-error/custom-error");
 const asyncWrapperjs = require("../middleware/asyncWrapper");
 const { task_collection } = require("../model/TaskSchema");
 
@@ -16,14 +17,14 @@ const selectTask = asyncWrapperjs(async (request, response, next) => {
   const { id: taskID } = request.params;
   const task = await task_collection.findOne({ _id: taskID });
   if (!task) {
-    const error = new Error("Task not found");
-    error.statusCode = 404;
-    return next(error);
+    return next(
+      customErrorMessage(`No task with ID : ${taskID} was found `, 404)
+    );
   }
   response.status(200).json({ task });
 });
 
-const updateTask = asyncWrapperjs(async (request, response) => {
+const updateTask = asyncWrapperjs(async (request, response, next) => {
   const { id: taskID } = request.params;
   const { name, isCompleted } = request.body;
   const taskToUpdate = await task_collection.findOneAndUpdate(
@@ -35,10 +36,9 @@ const updateTask = asyncWrapperjs(async (request, response) => {
     { new: true, runValidators: true }
   );
   if (!taskToUpdate) {
-    return response.status(404).json({
-      status: "not found",
-      message: "No data with ID provided was found in the Database ",
-    });
+    return next(
+      customErrorMessage(`No task with ID : ${taskID} was found `, 404)
+    );
   }
 
   await taskToUpdate.save();
@@ -47,16 +47,16 @@ const updateTask = asyncWrapperjs(async (request, response) => {
   });
 });
 
-const deleteTask = asyncWrapperjs(async (request, response) => {
+const deleteTask = asyncWrapperjs(async (request, response, next) => {
   const { id: taskID } = request.params;
 
   const task = await task_collection.findByIdAndDelete({
     _id: taskID,
   });
   if (!task) {
-    return response.status(404).json({
-      message: `Data your trying to delete does not exist `,
-    });
+    return next(
+      customErrorMessage(`No task with ID : ${taskID} was found `, 404)
+    );
   }
   response.status(200).json({
     message: `Task ID : ${taskID} was deleted successfully`,
