@@ -12,13 +12,13 @@ const createTask = asyncWrapperjs(async (request, response) => {
   response.status(201).json(task);
 });
 
-const selectTask = asyncWrapperjs(async (request, response) => {
+const selectTask = asyncWrapperjs(async (request, response, next) => {
   const { id: taskID } = request.params;
   const task = await task_collection.findOne({ _id: taskID });
   if (!task) {
-    return response.status(404).json({
-      msg: `No task was found with ID `,
-    });
+    const error = new Error("Task not found");
+    error.statusCode = 404;
+    return next(error);
   }
   response.status(200).json({ task });
 });
